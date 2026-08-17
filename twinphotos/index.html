@@ -17,8 +17,10 @@
     .card { background: #1a2030 !important; }
     a { color: #6ea8ff !important; }
     footer { color: #6b7488 !important; }
+    select { background: #1a2030; color: #e6eaf2; border-color: #2b3346; }
   }
   main { max-width: 680px; margin: 0 auto; padding: 48px 20px 64px; }
+  header { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
   h1 { font-size: 2em; margin: 0 0 4px; color: #2563eb; }
   @media (prefers-color-scheme: dark) { h1 { color: #6ea8ff; } }
   p.tagline { margin: 0 0 36px; opacity: 0.7; }
@@ -30,66 +32,458 @@
   .card h3 { margin: 0 0 6px; font-size: 1em; }
   .card p { margin: 0; font-size: 0.95em; opacity: 0.85; }
   a { color: #2563eb; }
+  select {
+    font: inherit; font-size: 0.85em; padding: 6px 10px; border-radius: 8px;
+    border: 1px solid #d3d9e4; background: #fff; color: inherit; margin-top: 6px;
+  }
   footer { margin-top: 56px; font-size: 0.8em; color: #8a93a6; text-align: center; }
 </style>
 </head>
 <body>
 <main>
-  <h1>Twin Photos</h1>
-  <p class="tagline">Duplicate Cleaner — Support</p>
+  <header>
+    <div>
+      <h1>Twin Photos</h1>
+      <p class="tagline" id="tagline"></p>
+    </div>
+    <select id="lang" aria-label="Language">
+      <option value="en">English</option>
+      <option value="ko">한국어</option>
+      <option value="ja">日本語</option>
+      <option value="zh-Hans">简体中文</option>
+      <option value="es">Español</option>
+      <option value="pt-BR">Português</option>
+      <option value="de">Deutsch</option>
+      <option value="fr">Français</option>
+    </select>
+  </header>
 
-  <h2>Contact</h2>
+  <h2 id="contactTitle"></h2>
   <div class="card">
-    <p>Questions, feedback, or bug reports:<br>
-    <a href="mailto:ddgd8389@gmail.com">ddgd8389@gmail.com</a><br>
-    We usually reply within 2 business days.</p>
+    <p id="contactBody"></p>
   </div>
 
-  <h2>Frequently Asked Questions</h2>
-
-  <div class="card">
-    <h3>Are my photos safe?</h3>
-    <p>Yes. Photos you delete with Twin Photos are moved to the iOS
-    <strong>Recently Deleted</strong> album, where they stay for 30 days.
-    You can restore them anytime from the Photos app: Albums → Recently Deleted.</p>
-  </div>
-
-  <div class="card">
-    <h3>Why didn't my storage free up right after deleting?</h3>
-    <p>iOS keeps deleted photos in Recently Deleted for 30 days.
-    To free up space immediately, open Photos → Albums → Recently Deleted → Select → Delete All.</p>
-  </div>
-
-  <div class="card">
-    <h3>Does Twin Photos upload my photos?</h3>
-    <p>No. All analysis runs entirely on your device.
-    Your photos are never uploaded and never leave your iPhone.
-    See our <a href="privacy.html">Privacy Policy</a>.</p>
-  </div>
-
-  <div class="card">
-    <h3>The app says it needs full photo access. Why?</h3>
-    <p>Twin Photos compares photos across your whole library to find duplicates,
-    so it needs Full Access. You can grant it in
-    Settings → Privacy &amp; Security → Photos → Twin Photos → Full Access.</p>
-  </div>
-
-  <div class="card">
-    <h3>How do I restore my purchase?</h3>
-    <p>Open the subscription screen in the app and tap <strong>Restore Purchases</strong>.
-    Make sure you are signed in with the same Apple Account used for the original purchase.</p>
-  </div>
-
-  <div class="card">
-    <h3>How do I cancel my subscription?</h3>
-    <p>Subscriptions are managed by the App Store:
-    Settings → your name → Subscriptions → Twin Photos → Cancel.
-    Cancelling stops future renewals; you keep Pro until the current period ends.</p>
-  </div>
+  <h2 id="faqTitle"></h2>
+  <div id="faq"></div>
 
   <footer>
-    © 2026 Suhyeon Park · <a href="privacy.html">Privacy Policy</a>
+    &copy; 2026 BabyTomato &middot; <a href="privacy.html" id="privacyLink"></a>
   </footer>
 </main>
+
+<script>
+// 언어별 문구를 한곳에 담는다. 파일을 언어마다 나누면 한 곳을 고칠 때
+// 여덟 곳을 고쳐야 하고, 빠뜨린 언어의 사용자만 낡은 안내를 보게 된다.
+const CONTENT = {
+ "en": {
+  "tagline": "Duplicate Cleaner — Support",
+  "contact": "Contact",
+  "contactBody": "Questions, feedback, or bug reports:",
+  "reply": "We usually reply within 2 business days.",
+  "faqTitle": "Frequently Asked Questions",
+  "privacy": "Privacy Policy",
+  "faq": [
+   {
+    "q": "I deleted photos but my storage didn't go up. Why?",
+    "a": "iOS keeps deleted photos in <strong>Recently Deleted</strong> for 30 days, so space is not freed right away. To reclaim it now, open the Photos app, scroll to the bottom of the album list, find <strong>Recently Deleted</strong> (it may sit under Utilities or Other), then tap Select → Delete All. This is an iOS behaviour and applies to every app that deletes photos."
+   },
+   {
+    "q": "Can I get deleted photos back?",
+    "a": "Yes. Photos deleted with Twin Photos go to the iOS <strong>Recently Deleted</strong> album and stay there for 30 days. Open Photos → Recently Deleted, select the photos and tap Recover."
+   },
+   {
+    "q": "Does Twin Photos upload my photos?",
+    "a": "No. All analysis runs entirely on your device. Your photos never leave your iPhone, and neither do the results. The app works without a network connection. The only thing sent anywhere is your subscription receipt, which is verified through Apple."
+   },
+   {
+    "q": "Two photos look similar but weren't grouped.",
+    "a": "Twin Photos compares the structure of each image. Burst shots and near-identical copies are found reliably, but a photo that was cropped, edited, or re-saved by another app (for example after sending it through a messenger) can end up with a different structure and be missed. You can review those photos yourself under <strong>Photos to review</strong> on the main screen."
+   },
+   {
+    "q": "Photos that aren't alike ended up in the same group.",
+    "a": "This happens most often with flat images — plain skies, walls, documents, or dark shots — where there is little structure to tell apart. Nothing is deleted without your confirmation: tap a group to open it and uncheck anything you want to keep."
+   },
+   {
+    "q": "Why does the app need full photo access?",
+    "a": "Twin Photos compares photos across your whole library to find duplicates, so it needs Full Access. With limited access it can only see the photos you picked, and duplicates in the rest of the library stay hidden. You can change this in Settings → Privacy &amp; Security → Photos → Twin Photos → Full Access."
+   },
+   {
+    "q": "How do I restore my purchase?",
+    "a": "Open <strong>Settings</strong> in the app (the gear icon on the main screen) and tap <strong>Restore purchases</strong>. Make sure you are signed in with the same Apple Account used for the original purchase."
+   },
+   {
+    "q": "How do I cancel my subscription?",
+    "a": "Subscriptions are managed by the App Store, not by us: Settings → your name → Subscriptions → Twin Photos → Cancel Subscription. Cancelling stops future renewals; you keep Pro until the current period ends."
+   },
+   {
+    "q": "Can I get a refund?",
+    "a": "Refunds are handled by Apple, not by us — we cannot issue them. Go to <a href=\"https://reportaproblem.apple.com\">reportaproblem.apple.com</a>, sign in, find Twin Photos and choose Request a refund. If something in the app went wrong, please write to us too so we can fix it."
+   }
+  ]
+ },
+ "ko": {
+  "tagline": "중복사진 정리 — 지원",
+  "contact": "문의",
+  "contactBody": "질문, 의견, 오류 신고를 받습니다:",
+  "reply": "보통 영업일 기준 2일 안에 답장드립니다.",
+  "faqTitle": "자주 묻는 질문",
+  "privacy": "개인정보처리방침",
+  "faq": [
+   {
+    "q": "사진을 지웠는데 저장 공간이 안 늘어요.",
+    "a": "iOS는 삭제한 사진을 <strong>최근 삭제된 항목</strong>에 30일간 보관합니다. 그래서 지운 즉시 공간이 늘지 않습니다. 바로 확보하려면 사진 앱을 열고 앨범 목록 맨 아래로 내려 <strong>최근 삭제된 항목</strong>을 찾은 뒤(유틸리티 또는 기타 안에 있을 수 있습니다) 선택 → 모두 삭제를 누르세요. iOS의 동작이라 사진을 지우는 모든 앱에 똑같이 적용됩니다."
+   },
+   {
+    "q": "지운 사진을 되돌릴 수 있나요?",
+    "a": "네. Twin Photos로 지운 사진은 iOS의 <strong>최근 삭제된 항목</strong>으로 옮겨져 30일간 남아 있습니다. 사진 앱 → 최근 삭제된 항목에서 사진을 고르고 복구를 누르세요."
+   },
+   {
+    "q": "사진이 서버로 전송되나요?",
+    "a": "아니요. 모든 분석은 기기 안에서만 이뤄집니다. 사진도, 분석 결과도 아이폰 밖으로 나가지 않습니다. 네트워크 없이도 동작합니다. 밖으로 나가는 것은 구독 영수증뿐이며 애플을 통해 검증됩니다."
+   },
+   {
+    "q": "비슷해 보이는데 한 묶음으로 안 묶여요.",
+    "a": "Twin Photos는 사진의 구조를 비교합니다. 연사와 거의 같은 복사본은 잘 찾지만, 잘라내거나 편집한 사진, 다른 앱이 다시 저장한 사진(메신저로 주고받은 것 등)은 구조가 달라져 놓칠 수 있습니다. 그런 사진은 첫 화면의 <strong>직접 정리할 사진</strong>에서 직접 보고 정리하실 수 있습니다."
+   },
+   {
+    "q": "안 비슷한 사진이 같은 묶음에 들어갔어요.",
+    "a": "밋밋한 사진에서 자주 생깁니다. 하늘, 벽, 문서, 어두운 사진처럼 구별할 구조가 적은 경우입니다. 확인 없이 삭제되는 것은 없습니다. 묶음을 눌러 열고 남길 사진의 선택을 해제하세요."
+   },
+   {
+    "q": "왜 전체 사진 접근 권한이 필요한가요?",
+    "a": "Twin Photos는 보관함 전체를 서로 비교해 중복을 찾습니다. 그래서 전체 접근이 필요합니다. 제한적 접근이면 직접 고른 사진만 보이므로 나머지 사진 속 중복은 찾을 수 없습니다. 설정 → 개인정보 보호 및 보안 → 사진 → Twin Photos → 전체 접근에서 바꾸실 수 있습니다."
+   },
+   {
+    "q": "구매 내역을 어떻게 복원하나요?",
+    "a": "앱 첫 화면의 톱니바퀴를 눌러 <strong>설정</strong>을 열고 <strong>구매 내역 복원</strong>을 누르세요. 구매하셨던 Apple 계정으로 로그인되어 있어야 합니다."
+   },
+   {
+    "q": "구독은 어떻게 해지하나요?",
+    "a": "구독은 저희가 아니라 App Store가 관리합니다. 설정 → 사용자 이름 → 구독 → Twin Photos → 구독 취소 순으로 진행하세요. 해지하면 다음 갱신부터 결제되지 않으며, 현재 기간이 끝날 때까지는 Pro가 유지됩니다."
+   },
+   {
+    "q": "환불받을 수 있나요?",
+    "a": "환불은 저희가 아니라 애플이 처리합니다. 저희 쪽에서는 환불해 드릴 수 없습니다. <a href=\"https://reportaproblem.apple.com\">reportaproblem.apple.com</a>에 로그인해 Twin Photos를 찾고 환불 요청을 선택하세요. 앱에 문제가 있어서라면 저희에게도 알려주시면 고치겠습니다."
+   }
+  ]
+ },
+ "ja": {
+  "tagline": "重複写真の整理 — サポート",
+  "contact": "お問い合わせ",
+  "contactBody": "ご質問・ご意見・不具合のご報告はこちらへ:",
+  "reply": "通常2営業日以内にご返信します。",
+  "faqTitle": "よくある質問",
+  "privacy": "プライバシーポリシー",
+  "faq": [
+   {
+    "q": "写真を削除したのに空き容量が増えません。",
+    "a": "iOSは削除した写真を<strong>最近削除した項目</strong>に30日間保管します。そのためすぐには空き容量が増えません。今すぐ空けるには、写真アプリを開きアルバム一覧を一番下までスクロールして<strong>最近削除した項目</strong>（「その他」や「ユーティリティ」の中にある場合があります）を開き、選択 → すべて削除を押してください。これはiOSの仕様で、写真を削除するすべてのアプリに当てはまります。"
+   },
+   {
+    "q": "削除した写真は元に戻せますか？",
+    "a": "はい。Twin Photosで削除した写真はiOSの<strong>最近削除した項目</strong>に移動し、30日間残ります。写真アプリ → 最近削除した項目で写真を選び、復元を押してください。"
+   },
+   {
+    "q": "写真はサーバーに送信されますか？",
+    "a": "いいえ。分析はすべて端末内で完結します。写真も分析結果もiPhoneの外には出ません。通信がなくても動作します。外部に送られるのは定期購読のレシートのみで、Appleを通じて検証されます。"
+   },
+   {
+    "q": "似ているのに同じグループになりません。",
+    "a": "Twin Photosは写真の構造を比べます。連写やほぼ同じコピーは確実に見つけますが、トリミングや編集をした写真、他のアプリが保存し直した写真（メッセンジャーでやり取りしたものなど）は構造が変わって見つけられないことがあります。そうした写真はメイン画面の<strong>自分で整理する写真</strong>から確認できます。"
+   },
+   {
+    "q": "似ていない写真が同じグループに入っています。",
+    "a": "空・壁・書類・暗い写真など、見分ける手がかりが少ない写真でよく起こります。確認なしに削除されることはありません。グループを開いて、残したい写真の選択を外してください。"
+   },
+   {
+    "q": "なぜ写真へのフルアクセスが必要ですか？",
+    "a": "Twin Photosはライブラリ全体を比べて重複を探すため、フルアクセスが必要です。限定アクセスでは選んだ写真しか見えず、残りの写真の中の重複は見つけられません。設定 → プライバシーとセキュリティ → 写真 → Twin Photos → フルアクセスで変更できます。"
+   },
+   {
+    "q": "購入を復元するには？",
+    "a": "アプリのメイン画面にある歯車から<strong>設定</strong>を開き、<strong>購入を復元</strong>を押してください。購入時と同じApple アカウントでサインインしている必要があります。"
+   },
+   {
+    "q": "定期購読を解約するには？",
+    "a": "定期購読は当方ではなくApp Storeが管理しています。設定 → ご自身の名前 → サブスクリプション → Twin Photos → 解約 の順に進んでください。解約すると次回以降は更新されませんが、現在の期間が終わるまではProのままです。"
+   },
+   {
+    "q": "返金してもらえますか？",
+    "a": "返金はAppleが処理します。当方では対応できません。<a href=\"https://reportaproblem.apple.com\">reportaproblem.apple.com</a>にサインインし、Twin Photosを選んで返金をリクエストしてください。アプリの不具合が理由でしたら、修正しますのでご連絡もいただけると助かります。"
+   }
+  ]
+ },
+ "zh-Hans": {
+  "tagline": "重复照片清理 — 支持",
+  "contact": "联系我们",
+  "contactBody": "问题、建议或错误反馈:",
+  "reply": "我们通常在 2 个工作日内回复。",
+  "faqTitle": "常见问题",
+  "privacy": "隐私政策",
+  "faq": [
+   {
+    "q": "删除照片后存储空间没有增加。",
+    "a": "iOS 会把删除的照片保留在<strong>最近删除</strong>中 30 天，因此空间不会立即释放。若要马上腾出空间，打开「照片」应用，滑到相簿列表底部找到<strong>最近删除</strong>（可能在「实用工具」或「其他」中），然后点选择 → 全部删除。这是 iOS 的机制，对所有删除照片的应用都一样。"
+   },
+   {
+    "q": "删除的照片可以恢复吗？",
+    "a": "可以。用 Twin Photos 删除的照片会进入 iOS 的<strong>最近删除</strong>相簿，保留 30 天。打开「照片」→「最近删除」，选择照片后点恢复。"
+   },
+   {
+    "q": "我的照片会被上传吗？",
+    "a": "不会。所有分析都在设备上完成，照片和分析结果都不会离开你的 iPhone。没有网络也能使用。唯一发送出去的是订阅收据，由 Apple 验证。"
+   },
+   {
+    "q": "两张照片看起来很像，却没有归为一组。",
+    "a": "Twin Photos 比较的是图像结构。连拍和几乎完全相同的副本能可靠找到，但经过裁剪、编辑，或被其他应用重新保存的照片（例如通过聊天软件转发过的），结构会改变而被漏掉。这些照片可以在主界面的<strong>需自行整理的照片</strong>中查看。"
+   },
+   {
+    "q": "不相似的照片被分到了同一组。",
+    "a": "这在画面平淡的照片上比较常见——纯色天空、墙面、文档或很暗的照片，可供区分的结构太少。没有你的确认不会删除任何照片：点开分组，取消勾选想保留的照片即可。"
+   },
+   {
+    "q": "为什么需要完全照片访问权限？",
+    "a": "Twin Photos 需要比较整个图库来查找重复照片，所以需要完全访问权限。如果只授予有限访问，应用只能看到你选中的照片，其余照片中的重复项无法被发现。可在设置 → 隐私与安全性 → 照片 → Twin Photos → 完全访问权限中更改。"
+   },
+   {
+    "q": "如何恢复购买？",
+    "a": "在应用主界面点齿轮图标打开<strong>设置</strong>，然后点<strong>恢复购买</strong>。请确认你使用的是购买时的同一个 Apple 账户。"
+   },
+   {
+    "q": "如何取消订阅？",
+    "a": "订阅由 App Store 管理，而非我们：设置 → 你的姓名 → 订阅 → Twin Photos → 取消订阅。取消后不再续期，当前周期结束前仍可使用 Pro。"
+   },
+   {
+    "q": "可以退款吗？",
+    "a": "退款由 Apple 处理，我们无法直接退款。请前往 <a href=\"https://reportaproblem.apple.com\">reportaproblem.apple.com</a> 登录，找到 Twin Photos 并选择申请退款。如果是应用出了问题，也请告诉我们，我们会修复。"
+   }
+  ]
+ },
+ "es": {
+  "tagline": "Fotos duplicadas — Soporte",
+  "contact": "Contacto",
+  "contactBody": "Preguntas, comentarios o errores:",
+  "reply": "Solemos responder en 2 días hábiles.",
+  "faqTitle": "Preguntas frecuentes",
+  "privacy": "Política de privacidad",
+  "faq": [
+   {
+    "q": "Borré fotos pero el almacenamiento no aumentó.",
+    "a": "iOS guarda las fotos borradas en <strong>Eliminados recientemente</strong> durante 30 días, así que el espacio no se libera de inmediato. Para recuperarlo ahora, abre Fotos, baja hasta el final de la lista de álbumes, busca <strong>Eliminados recientemente</strong> (puede estar en Utilidades u Otros) y toca Seleccionar → Eliminar todo. Es un comportamiento de iOS y afecta a todas las apps que borran fotos."
+   },
+   {
+    "q": "¿Puedo recuperar las fotos borradas?",
+    "a": "Sí. Las fotos borradas con Twin Photos van al álbum <strong>Eliminados recientemente</strong> de iOS y se quedan 30 días. Abre Fotos → Eliminados recientemente, selecciónalas y toca Recuperar."
+   },
+   {
+    "q": "¿Twin Photos sube mis fotos?",
+    "a": "No. Todo el análisis ocurre en tu dispositivo. Ni las fotos ni los resultados salen de tu iPhone. La app funciona sin conexión. Lo único que se envía es el recibo de la suscripción, verificado a través de Apple."
+   },
+   {
+    "q": "Dos fotos parecen iguales pero no se agruparon.",
+    "a": "Twin Photos compara la estructura de cada imagen. Las ráfagas y copias casi idénticas se detectan bien, pero una foto recortada, editada o vuelta a guardar por otra app (por ejemplo tras enviarla por mensajería) puede quedar con otra estructura y pasarse por alto. Puedes revisarlas tú en <strong>Fotos para revisar</strong> en la pantalla principal."
+   },
+   {
+    "q": "Fotos que no se parecen quedaron en el mismo grupo.",
+    "a": "Suele pasar con imágenes planas: cielos, paredes, documentos o fotos oscuras, donde hay poca estructura para distinguir. Nada se borra sin tu confirmación: abre el grupo y desmarca lo que quieras conservar."
+   },
+   {
+    "q": "¿Por qué necesita acceso completo a las fotos?",
+    "a": "Twin Photos compara las fotos de toda tu fototeca para encontrar duplicados, por eso necesita Acceso completo. Con acceso limitado solo ve las fotos que elegiste y los duplicados del resto quedan ocultos. Puedes cambiarlo en Ajustes → Privacidad y seguridad → Fotos → Twin Photos → Acceso completo."
+   },
+   {
+    "q": "¿Cómo restauro mi compra?",
+    "a": "Abre <strong>Ajustes</strong> en la app (el engranaje de la pantalla principal) y toca <strong>Restaurar compras</strong>. Asegúrate de haber iniciado sesión con la misma cuenta de Apple de la compra original."
+   },
+   {
+    "q": "¿Cómo cancelo mi suscripción?",
+    "a": "Las suscripciones las gestiona el App Store, no nosotros: Ajustes → tu nombre → Suscripciones → Twin Photos → Cancelar suscripción. Al cancelar dejan de renovarse; conservas Pro hasta que termine el periodo actual."
+   },
+   {
+    "q": "¿Puedo pedir un reembolso?",
+    "a": "Los reembolsos los gestiona Apple, no nosotros; no podemos emitirlos. Entra en <a href=\"https://reportaproblem.apple.com\">reportaproblem.apple.com</a>, inicia sesión, busca Twin Photos y elige Solicitar un reembolso. Si algo falló en la app, escríbenos también para que podamos arreglarlo."
+   }
+  ]
+ },
+ "pt-BR": {
+  "tagline": "Fotos duplicadas — Suporte",
+  "contact": "Contato",
+  "contactBody": "Dúvidas, sugestões ou erros:",
+  "reply": "Costumamos responder em 2 dias úteis.",
+  "faqTitle": "Perguntas frequentes",
+  "privacy": "Política de Privacidade",
+  "faq": [
+   {
+    "q": "Apaguei fotos mas o armazenamento não aumentou.",
+    "a": "O iOS guarda as fotos apagadas em <strong>Apagados Recentemente</strong> por 30 dias, então o espaço não é liberado na hora. Para liberar agora, abra o app Fotos, role até o fim da lista de álbuns, encontre <strong>Apagados Recentemente</strong> (pode estar em Utilitários ou Outros) e toque em Selecionar → Apagar Tudo. Isso é do iOS e vale para todos os apps que apagam fotos."
+   },
+   {
+    "q": "Consigo recuperar as fotos apagadas?",
+    "a": "Sim. As fotos apagadas pelo Twin Photos vão para o álbum <strong>Apagados Recentemente</strong> do iOS e ficam 30 dias. Abra Fotos → Apagados Recentemente, selecione as fotos e toque em Recuperar."
+   },
+   {
+    "q": "O Twin Photos envia minhas fotos?",
+    "a": "Não. Toda a análise acontece no seu aparelho. Nem as fotos nem os resultados saem do seu iPhone. O app funciona sem internet. A única coisa enviada é o recibo da assinatura, verificado pela Apple."
+   },
+   {
+    "q": "Duas fotos parecem iguais mas não foram agrupadas.",
+    "a": "O Twin Photos compara a estrutura de cada imagem. Rajadas e cópias quase idênticas são encontradas com segurança, mas uma foto recortada, editada ou salva de novo por outro app (por exemplo depois de passar por um mensageiro) pode ficar com outra estrutura e escapar. Você pode revisá-las em <strong>Fotos para revisar</strong> na tela principal."
+   },
+   {
+    "q": "Fotos que não são parecidas ficaram no mesmo grupo.",
+    "a": "Acontece mais com imagens sem muita variação: céu, paredes, documentos ou fotos escuras, com pouca estrutura para diferenciar. Nada é apagado sem a sua confirmação: abra o grupo e desmarque o que quiser manter."
+   },
+   {
+    "q": "Por que o app precisa de acesso total às fotos?",
+    "a": "O Twin Photos compara as fotos de toda a fototeca para achar duplicadas, por isso precisa de Acesso Total. Com acesso limitado ele só enxerga as fotos que você escolheu e as duplicadas do resto ficam escondidas. Você muda isso em Ajustes → Privacidade e Segurança → Fotos → Twin Photos → Acesso Total."
+   },
+   {
+    "q": "Como restauro minha compra?",
+    "a": "Abra os <strong>Ajustes</strong> no app (a engrenagem na tela principal) e toque em <strong>Restaurar compras</strong>. Confirme que está conectado com a mesma Conta Apple usada na compra."
+   },
+   {
+    "q": "Como cancelo minha assinatura?",
+    "a": "As assinaturas são gerenciadas pela App Store, não por nós: Ajustes → seu nome → Assinaturas → Twin Photos → Cancelar assinatura. Ao cancelar, não há mais renovações; você mantém o Pro até o fim do período atual."
+   },
+   {
+    "q": "Posso pedir reembolso?",
+    "a": "Os reembolsos são feitos pela Apple, não por nós — não podemos emiti-los. Acesse <a href=\"https://reportaproblem.apple.com\">reportaproblem.apple.com</a>, faça login, encontre o Twin Photos e escolha Solicitar reembolso. Se algo deu errado no app, escreva para nós também para que possamos corrigir."
+   }
+  ]
+ },
+ "de": {
+  "tagline": "Doppelte Fotos — Support",
+  "contact": "Kontakt",
+  "contactBody": "Fragen, Feedback oder Fehler:",
+  "reply": "Wir antworten meist innerhalb von 2 Werktagen.",
+  "faqTitle": "Häufige Fragen",
+  "privacy": "Datenschutzrichtlinie",
+  "faq": [
+   {
+    "q": "Ich habe Fotos gelöscht, aber der Speicher wurde nicht frei.",
+    "a": "iOS bewahrt gelöschte Fotos 30 Tage lang unter <strong>Zuletzt gelöscht</strong> auf, der Speicher wird also nicht sofort frei. Um ihn jetzt zu bekommen: Fotos-App öffnen, in der Albumliste ganz nach unten scrollen, <strong>Zuletzt gelöscht</strong> öffnen (evtl. unter Dienstprogramme oder Sonstiges), dann Auswählen → Alle löschen. Das ist iOS-Verhalten und gilt für jede App, die Fotos löscht."
+   },
+   {
+    "q": "Kann ich gelöschte Fotos zurückholen?",
+    "a": "Ja. Mit Twin Photos gelöschte Fotos landen im iOS-Album <strong>Zuletzt gelöscht</strong> und bleiben dort 30 Tage. Fotos → Zuletzt gelöscht öffnen, Fotos auswählen und auf Wiederherstellen tippen."
+   },
+   {
+    "q": "Lädt Twin Photos meine Fotos hoch?",
+    "a": "Nein. Die gesamte Analyse läuft auf deinem Gerät. Weder Fotos noch Ergebnisse verlassen dein iPhone. Die App funktioniert ohne Netzverbindung. Versendet wird nur der Abo-Beleg, der über Apple geprüft wird."
+   },
+   {
+    "q": "Zwei Fotos sehen gleich aus, wurden aber nicht gruppiert.",
+    "a": "Twin Photos vergleicht die Struktur jedes Bildes. Serienbilder und nahezu identische Kopien werden zuverlässig gefunden, aber ein zugeschnittenes, bearbeitetes oder von einer anderen App neu gespeichertes Foto (etwa nach dem Versand über einen Messenger) kann eine andere Struktur haben und übersehen werden. Solche Fotos findest du unter <strong>Fotos zum Durchsehen</strong> auf dem Hauptbildschirm."
+   },
+   {
+    "q": "Fotos, die sich nicht ähneln, kamen in dieselbe Gruppe.",
+    "a": "Das passiert meist bei flächigen Bildern — Himmel, Wände, Dokumente oder dunkle Aufnahmen — bei denen es kaum Struktur zum Unterscheiden gibt. Ohne deine Bestätigung wird nichts gelöscht: Gruppe öffnen und alles abwählen, was bleiben soll."
+   },
+   {
+    "q": "Warum braucht die App vollen Fotozugriff?",
+    "a": "Twin Photos vergleicht Fotos in deiner gesamten Mediathek, um Duplikate zu finden — dafür ist Vollzugriff nötig. Bei eingeschränktem Zugriff sieht die App nur die ausgewählten Fotos, Duplikate im Rest bleiben verborgen. Ändern kannst du das unter Einstellungen → Datenschutz &amp; Sicherheit → Fotos → Twin Photos → Vollzugriff."
+   },
+   {
+    "q": "Wie stelle ich meinen Kauf wieder her?",
+    "a": "Öffne in der App die <strong>Einstellungen</strong> (Zahnrad auf dem Hauptbildschirm) und tippe auf <strong>Käufe wiederherstellen</strong>. Du musst mit dem Apple-Account angemeldet sein, mit dem du gekauft hast."
+   },
+   {
+    "q": "Wie kündige ich mein Abo?",
+    "a": "Abos verwaltet der App Store, nicht wir: Einstellungen → dein Name → Abos → Twin Photos → Abo kündigen. Nach der Kündigung wird nicht mehr verlängert; Pro bleibt bis zum Ende des laufenden Zeitraums."
+   },
+   {
+    "q": "Kann ich eine Rückerstattung bekommen?",
+    "a": "Rückerstattungen wickelt Apple ab, nicht wir — wir können sie nicht auslösen. Gehe zu <a href=\"https://reportaproblem.apple.com\">reportaproblem.apple.com</a>, melde dich an, suche Twin Photos und wähle Rückerstattung anfordern. Wenn in der App etwas schiefging, schreib uns bitte auch, damit wir es beheben."
+   }
+  ]
+ },
+ "fr": {
+  "tagline": "Photos en double — Assistance",
+  "contact": "Contact",
+  "contactBody": "Questions, retours ou bugs :",
+  "reply": "Nous répondons généralement sous 2 jours ouvrés.",
+  "faqTitle": "Questions fréquentes",
+  "privacy": "Politique de confidentialité",
+  "faq": [
+   {
+    "q": "J'ai supprimé des photos mais l'espace n'a pas augmenté.",
+    "a": "iOS conserve les photos supprimées dans <strong>Supprimés récemment</strong> pendant 30 jours : l'espace n'est donc pas libéré tout de suite. Pour le récupérer maintenant, ouvrez Photos, faites défiler jusqu'en bas de la liste des albums, ouvrez <strong>Supprimés récemment</strong> (parfois dans Utilitaires ou Autres), puis Sélectionner → Tout supprimer. C'est un comportement d'iOS, valable pour toute app qui supprime des photos."
+   },
+   {
+    "q": "Puis-je récupérer les photos supprimées ?",
+    "a": "Oui. Les photos supprimées avec Twin Photos vont dans l'album iOS <strong>Supprimés récemment</strong> et y restent 30 jours. Ouvrez Photos → Supprimés récemment, sélectionnez-les et touchez Récupérer."
+   },
+   {
+    "q": "Twin Photos envoie-t-il mes photos ?",
+    "a": "Non. Toute l'analyse se fait sur votre appareil. Ni les photos ni les résultats ne quittent votre iPhone. L'app fonctionne sans connexion. Seul le reçu d'abonnement est transmis, vérifié via Apple."
+   },
+   {
+    "q": "Deux photos se ressemblent mais n'ont pas été regroupées.",
+    "a": "Twin Photos compare la structure de chaque image. Les rafales et copies quasi identiques sont trouvées de façon fiable, mais une photo recadrée, retouchée ou réenregistrée par une autre app (après un envoi par messagerie par exemple) peut avoir une structure différente et passer inaperçue. Vous pouvez les examiner dans <strong>Photos à trier</strong> sur l'écran principal."
+   },
+   {
+    "q": "Des photos qui ne se ressemblent pas sont dans le même groupe.",
+    "a": "Cela arrive surtout avec des images uniformes — ciel, murs, documents ou photos sombres — où il y a peu de structure pour les distinguer. Rien n'est supprimé sans votre confirmation : ouvrez le groupe et décochez ce que vous voulez garder."
+   },
+   {
+    "q": "Pourquoi l'app demande-t-elle l'accès à toutes les photos ?",
+    "a": "Twin Photos compare les photos de toute votre photothèque pour trouver les doublons : l'accès complet est donc nécessaire. Avec un accès limité, l'app ne voit que les photos choisies et les doublons du reste restent invisibles. Modifiable dans Réglages → Confidentialité et sécurité → Photos → Twin Photos → Accès complet."
+   },
+   {
+    "q": "Comment restaurer mon achat ?",
+    "a": "Ouvrez les <strong>Réglages</strong> dans l'app (l'engrenage sur l'écran principal) et touchez <strong>Restaurer les achats</strong>. Vous devez être connecté avec le compte Apple utilisé pour l'achat."
+   },
+   {
+    "q": "Comment résilier mon abonnement ?",
+    "a": "Les abonnements sont gérés par l'App Store, pas par nous : Réglages → votre nom → Abonnements → Twin Photos → Résilier l'abonnement. La résiliation arrête les renouvellements ; vous gardez Pro jusqu'à la fin de la période en cours."
+   },
+   {
+    "q": "Puis-je être remboursé ?",
+    "a": "Les remboursements sont gérés par Apple, pas par nous — nous ne pouvons pas les effectuer. Rendez-vous sur <a href=\"https://reportaproblem.apple.com\">reportaproblem.apple.com</a>, connectez-vous, trouvez Twin Photos et choisissez Demander un remboursement. Si un problème vient de l'app, écrivez-nous aussi pour que nous puissions le corriger."
+   }
+  ]
+ }
+};
+
+const EMAIL = "ddgd8389@gmail.com";
+
+function render(code) {
+  const t = CONTENT[code] || CONTENT.en;
+  document.documentElement.lang = code;
+  document.getElementById("tagline").textContent = t.tagline;
+  document.getElementById("contactTitle").textContent = t.contact;
+  document.getElementById("contactBody").innerHTML =
+    t.contactBody + '<br><a href="mailto:' + EMAIL + '">' + EMAIL + "</a><br>" + t.reply;
+  document.getElementById("faqTitle").textContent = t.faqTitle;
+  document.getElementById("privacyLink").textContent = t.privacy;
+  document.getElementById("faq").innerHTML = t.faq.map(function (item) {
+    // 질문은 사용자가 쓴 글이 아니라 이 파일 안의 고정 문구라 그대로 넣어도 안전하다.
+    return '<div class="card"><h3>' + item.q + "</h3><p>" + item.a + "</p></div>";
+  }).join("");
+}
+
+// 브라우저 언어에 맞춘다. 정확히 일치하는 것이 없으면 앞 두 글자로 찾고,
+// 그것도 없으면 영어로 떨어진다. 지원하지 않는 언어 사용자가 빈 화면을 보면 안 된다.
+function pick() {
+  const saved = localStorage.getItem("lang");
+  if (saved && CONTENT[saved]) return saved;
+  for (const raw of navigator.languages || [navigator.language || "en"]) {
+    if (CONTENT[raw]) return raw;
+    const base = raw.split("-")[0];
+    const hit = Object.keys(CONTENT).find(function (k) { return k.split("-")[0] === base; });
+    if (hit) return hit;
+  }
+  return "en";
+}
+
+const initial = pick();
+document.getElementById("lang").value = initial;
+render(initial);
+
+document.getElementById("lang").addEventListener("change", function (e) {
+  localStorage.setItem("lang", e.target.value);
+  render(e.target.value);
+});
+</script>
 </body>
 </html>
